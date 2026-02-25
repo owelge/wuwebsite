@@ -1,79 +1,177 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Weluse – Research Collective for the Onchain Era">
-  <title>weluse // research</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+  <title>weluse // advisory</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+    :root {
+      --bg: #0a0a0a;
+      --fg: #e0e0e0;
+      --dim: #5a5a5a;
+      --accent: #888;
+      --glow: rgba(255,255,255,0.03);
     }
-    html, body {
-      background-color: #000;
-      color: #e5e5e5;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 16px;
-      line-height: 1.6;
-      padding: 40px 20px;
-    }
-    a {
-      color: #a8ff60;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    .container {
-      max-width: 100%;
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'JetBrains Mono', monospace;
+      min-height: 100vh;
       display: flex;
+      align-items: center;
       justify-content: center;
+      padding: 2rem;
+      position: relative;
+      overflow-x: hidden;
     }
-    pre {
-      max-width: 800px;
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255,255,255,0.008) 2px,
+        rgba(255,255,255,0.008) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .terminal {
+      max-width: 680px;
       width: 100%;
-      overflow-x: auto;
+      position: relative;
+    }
+
+    .terminal::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: -80px; right: -80px; bottom: -80px;
+      background: radial-gradient(ellipse at center, var(--glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      line-height: 1.8;
       white-space: pre-wrap;
       word-wrap: break-word;
+      position: relative;
+      z-index: 1;
+    }
+
+    .block { margin-bottom: 2.4rem; }
+    .block:last-child { margin-bottom: 0; }
+
+    .prompt { color: var(--dim); }
+    .title {
+      color: var(--fg);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+    .subtitle {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 300;
+      letter-spacing: 1px;
+    }
+    .body { color: var(--dim); font-weight: 300; }
+    .highlight { color: var(--fg); font-weight: 400; }
+    .dim { color: var(--dim); }
+    .link {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px solid var(--dim);
+      transition: border-color 0.3s ease;
+    }
+    .link:hover { border-color: var(--fg); }
+    .log-year { color: var(--accent); font-weight: 500; }
+    .log-entry { color: var(--dim); font-weight: 300; }
+    .status-val { color: var(--accent); }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: var(--fg);
+      animation: blink 1.2s step-end infinite;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .fade-in {
+      opacity: 0;
+      animation: fadeIn 0.8s ease forwards;
+    }
+    .fade-in:nth-child(1) { animation-delay: 0.1s; }
+    .fade-in:nth-child(2) { animation-delay: 0.3s; }
+    .fade-in:nth-child(3) { animation-delay: 0.5s; }
+    .fade-in:nth-child(4) { animation-delay: 0.7s; }
+    .fade-in:nth-child(5) { animation-delay: 0.9s; }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 1.2rem; }
+      pre { font-size: 12px; }
+      .title { font-size: 22px; }
+      .block { margin-bottom: 2rem; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-<pre>> weluse://init
+  <div class="terminal">
 
-weluse
-research collective for the onchain era
+    <pre class="block fade-in"><span class="prompt">&gt; weluse://init</span>
 
-we operate under the radar, yet right at the source.
-while markets chase speculation, we validate fundamentals in real time.
-we dive deep into infrastructure, dissect protocols, and map the rails where machine economy, real world assets, and native onchain equity converge and scale.
+<span class="title">weluse</span>
+<span class="subtitle">strategic advisory for digital transformation</span></pre>
 
-we cut through noise to find signal.
-our lens stays on builders who deliver more than visions: real onchain cashflow, enforceable governance, and operational business models that already generate yield today.
+    <pre class="block fade-in"><span class="body">25 Jahre Tech. Produkte gebaut f&uuml;r Startups, eigene
+Ventures gelauncht, Agentur gef&uuml;hrt f&uuml;r Brands wie
+XXXLutz, MediaMarkt, AboutYou, Enercon, Otto u.v.m.</span>
 
-we are not passive observers.
-we exploit emerging information asymmetries to surface structural mispricing before the broader market wakes up, granting us a systematic edge in a capital system that is quietly rewriting its own rules.
+<span class="body">Heute: </span><span class="highlight">Digitalisierung, Technologiebewertung, Softwareauswahl.</span>
+<span class="body">Hands-on. Kein Slide-Deck-Consulting.</span></pre>
 
-deep dives. high conviction. built for what’s next.
+    <pre class="block fade-in"><span class="prompt">&gt; services</span>
 
+  <span class="highlight">software selection &amp; evaluation</span>
+  <span class="dim">Anforderungen, Marktanalyse, Anbietervergleich, Entscheidung</span>
 
-> log
+  <span class="highlight">digitalization strategy</span>
+  <span class="dim">Prozessaufnahme, Gap-Analyse, Roadmap, Tool-Auswahl</span>
 
-[2008] software development for early stage startups
-[2012] launched our own ventures
-[2016] product agency for digital market leaders
-[2026] research collective: defi, rwa, equity tokens
+  <span class="highlight">sparring &amp; second opinion</span>
+  <span class="dim">Externer Blick auf Tech-Entscheidungen, Architektur, Anbieter</span></pre>
 
+    <pre class="block fade-in"><span class="prompt">&gt; log</span>
 
-> status: active
-> access: by context or recommendation
-> open <a href="https://linkedin.com/in/oliver-welge" target="_blank">https://linkedin.com/in/oliver-welge</a>
-> pulse: tokenized equities ~$963M distributed (30x faster growth than treasuries), RWAs ex-stablecoins ~$25B – shift accelerating</pre>
+<span class="log-year">[2008]</span> <span class="log-entry">software development for early stage startups</span>
+<span class="log-year">[2012]</span> <span class="log-entry">launched our own ventures</span>
+<span class="log-year">[2016]</span> <span class="log-entry">product agency for digital market leaders</span>
+<span class="log-year">[2025]</span> <span class="log-entry">strategic advisory: digitalization &amp; technology</span></pre>
+
+    <pre class="fade-in"><span class="prompt">&gt; status:</span> <span class="status-val">active</span>
+<span class="prompt">&gt; access:</span> <span class="status-val">by context or recommendation</span>
+<span class="prompt">&gt; open</span> <a href="https://linkedin.com/in/oliver-welge" class="link" target="_blank">https://linkedin.com/in/oliver-welge</a><span class="cursor"></span></pre>
+
   </div>
 </body>
 </html>
