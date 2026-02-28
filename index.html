@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>weluse // advisory</title>
+  <title>weluse</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
 
     :root {
-      --bg: #0a0a0a;
-      --fg: #e0e0e0;
-      --dim: #5a5a5a;
-      --accent: #888;
-      --glow: rgba(255,255,255,0.03);
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --body: #555;
+      --dim: #999;
+      --border: #e0e0e0;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -26,83 +26,61 @@
       align-items: center;
       justify-content: center;
       padding: 2rem;
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(255,255,255,0.008) 2px,
-        rgba(255,255,255,0.008) 4px
-      );
-      pointer-events: none;
-      z-index: 100;
     }
 
     .terminal {
-      max-width: 680px;
+      max-width: 660px;
       width: 100%;
-      position: relative;
-    }
-
-    .terminal::before {
-      content: '';
-      position: absolute;
-      top: -80px; left: -80px; right: -80px; bottom: -80px;
-      background: radial-gradient(ellipse at center, var(--glow) 0%, transparent 70%);
-      pointer-events: none;
     }
 
     pre {
       font-family: 'JetBrains Mono', monospace;
       font-size: 14px;
-      line-height: 1.8;
+      line-height: 1.85;
       white-space: pre-wrap;
       word-wrap: break-word;
-      position: relative;
-      z-index: 1;
     }
 
-    .block { margin-bottom: 2.4rem; }
+    .block { margin-bottom: 2.8rem; }
     .block:last-child { margin-bottom: 0; }
 
     .prompt { color: var(--dim); }
     .title {
       color: var(--fg);
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 700;
       letter-spacing: 2px;
     }
     .subtitle {
-      color: var(--accent);
-      font-size: 14px;
-      font-weight: 300;
-      letter-spacing: 1px;
+      color: var(--dim);
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
     }
-    .body { color: var(--dim); font-weight: 300; }
-    .highlight { color: var(--fg); font-weight: 400; }
-    .dim { color: var(--dim); }
+    .body { color: var(--body); font-weight: 400; }
+    .highlight { color: var(--fg); font-weight: 500; }
+    .dim { color: var(--dim); font-weight: 400; }
     .link {
       color: var(--fg);
       text-decoration: none;
-      border-bottom: 1px solid var(--dim);
+      border-bottom: 1px solid var(--border);
       transition: border-color 0.3s ease;
     }
     .link:hover { border-color: var(--fg); }
-    .log-year { color: var(--accent); font-weight: 500; }
-    .log-entry { color: var(--dim); font-weight: 300; }
-    .status-val { color: var(--accent); }
+    .log-year { color: var(--fg); font-weight: 500; }
+    .log-entry { color: var(--body); font-weight: 400; }
+    .status-val { color: var(--body); }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.8rem 0;
+    }
 
     .cursor {
       display: inline-block;
       width: 8px;
-      height: 16px;
+      height: 15px;
       background: var(--fg);
       animation: blink 1.2s step-end infinite;
       vertical-align: middle;
@@ -118,10 +96,12 @@
       animation: fadeIn 0.8s ease forwards;
     }
     .fade-in:nth-child(1) { animation-delay: 0.1s; }
-    .fade-in:nth-child(2) { animation-delay: 0.3s; }
-    .fade-in:nth-child(3) { animation-delay: 0.5s; }
-    .fade-in:nth-child(4) { animation-delay: 0.7s; }
-    .fade-in:nth-child(5) { animation-delay: 0.9s; }
+    .fade-in:nth-child(2) { animation-delay: 0.25s; }
+    .fade-in:nth-child(3) { animation-delay: 0.4s; }
+    .fade-in:nth-child(4) { animation-delay: 0.55s; }
+    .fade-in:nth-child(5) { animation-delay: 0.7s; }
+    .fade-in:nth-child(6) { animation-delay: 0.85s; }
+    .fade-in:nth-child(7) { animation-delay: 1.0s; }
 
     @keyframes fadeIn {
       to { opacity: 1; }
@@ -131,7 +111,8 @@
       body { padding: 1.2rem; }
       pre { font-size: 12px; }
       .title { font-size: 22px; }
-      .block { margin-bottom: 2rem; }
+      .block { margin-bottom: 2.2rem; }
+      .divider { margin: 2.2rem 0; }
     }
   </style>
 </head>
@@ -141,36 +122,44 @@
     <pre class="block fade-in"><span class="prompt">&gt; weluse://init</span>
 
 <span class="title">weluse</span>
-<span class="subtitle">strategic advisory for digital transformation</span></pre>
+<span class="subtitle">Oliver Welge</span></pre>
 
-    <pre class="block fade-in"><span class="body">25 Jahre Tech. Produkte gebaut f&uuml;r Startups, eigene
-Ventures gelauncht, Agentur gef&uuml;hrt f&uuml;r Brands wie
-XXXLutz, MediaMarkt, AboutYou, Enercon, Otto u.v.m.</span>
+    <pre class="block fade-in"><span class="body">Seit '99 in Tech. Eigene Produkte, eigene Ventures,
+Agentur f&uuml;r Brands wie XXXLutz, MediaMarkt, AboutYou,
+Enercon, Otto. Hat funktioniert.</span></pre>
 
-<span class="body">Heute: </span><span class="highlight">Digitalisierung, Technologiebewertung, Softwareauswahl.</span>
-<span class="body">Hands-on. Kein Slide-Deck-Consulting.</span></pre>
+    <pre class="block fade-in"><span class="body">Heute mache ich weiterhin das worauf ich Bock
+habe, allerdings ohne eigenes Team im Hintergrund:</span>
+<span class="highlight">Reinschrauben, mitdenken und Dinge anschieben.</span>
 
-    <pre class="block fade-in"><span class="prompt">&gt; services</span>
+<span class="body">Softwareauswahl, Digitalisierung, Tech-Entscheidungen,
+Sparring, Challenging oder einfach ein frisches
+Paar Augen.</span></pre>
 
-  <span class="highlight">software selection &amp; evaluation</span>
-  <span class="dim">Anforderungen, Marktanalyse, Anbietervergleich, Entscheidung</span>
-
-  <span class="highlight">digitalization strategy</span>
-  <span class="dim">Prozessaufnahme, Gap-Analyse, Roadmap, Tool-Auswahl</span>
-
-  <span class="highlight">sparring &amp; second opinion</span>
-  <span class="dim">Externer Blick auf Tech-Entscheidungen, Architektur, Anbieter</span></pre>
-
-    <pre class="block fade-in"><span class="prompt">&gt; log</span>
-
-<span class="log-year">[2008]</span> <span class="log-entry">software development for early stage startups</span>
-<span class="log-year">[2012]</span> <span class="log-entry">launched our own ventures</span>
-<span class="log-year">[2016]</span> <span class="log-entry">product agency for digital market leaders</span>
-<span class="log-year">[2025]</span> <span class="log-entry">strategic advisory: digitalization &amp; technology</span></pre>
-
-    <pre class="fade-in"><span class="prompt">&gt; status:</span> <span class="status-val">active</span>
+    <pre class="block fade-in"><span class="prompt">&gt; status:</span> <span class="status-val">active</span>
 <span class="prompt">&gt; access:</span> <span class="status-val">by context or recommendation</span>
-<span class="prompt">&gt; open</span> <a href="https://linkedin.com/in/oliver-welge" class="link" target="_blank">https://linkedin.com/in/oliver-welge</a><span class="cursor"></span></pre>
+<span class="prompt">&gt; let's talk:</span> <a href="mailto:oliver@weluse.de" class="link">oliver@weluse.de</a></pre>
+
+    <pre class="fade-in"><span class="prompt">&gt; log</span>
+
+<span class="log-year">[1999]</span> <span class="log-entry">built one of germany's leading community</span>
+       <span class="log-entry">platforms (100k+ members)</span>
+<span class="log-year">[2008]</span> <span class="log-entry">founded weluse &mdash; software development</span>
+       <span class="log-entry">for early stage startups</span>
+<span class="log-year">[2012]</span> <span class="log-entry">launched snapmobl and various ventures</span>
+       <span class="log-entry">in the mobile-first era</span>
+<span class="log-year">[2016]</span> <span class="log-entry">product agency for digital market leaders</span>
+<span class="log-year">[2026]</span> <span class="log-entry">still at it, flying solo</span></pre>
+
+    <pre class="fade-in"><span class="dim">&mdash;</span>
+<span class="dim"><a href="https://linkedin.com/in/oliver-welge" class="link" target="_blank" style="color: var(--dim); border-bottom-color: var(--border);">in/oliver-welge</a></span>
+<span class="dim">weluse.de // 2026 // <span id="hash">#c9af5f6c</span></span><span class="cursor"></span></pre>
+
+    <script>
+      const h = [...crypto.getRandomValues(new Uint8Array(4))]
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+      document.getElementById('hash').textContent = '#' + h;
+    </script>
 
   </div>
 </body>
