@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oliver Welge | Tech meets Business</title>
+    <style>
+        /* --- CYBERPUNK / SPACEX MINIMALISM RESETS --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            background-color: #030406;
+            color: #f1f5f9;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden; 
+            width: 100vw;
+            height: 100vh;
+            letter-spacing: 0.5px;
+        }
+
+        .scroll-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stage {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            place-items: center;
+        }
+
+        /* --- IMMERSIVE VECTOR CANVAS BACKGROUND --- */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* --- CONTENT CARDS WITH CYBERCAB AESTHETIC --- */
+        .content-wrapper {
+            position: relative;
+            z-index: 2;
+            max-width: 850px;
+            width: 100%;
+            padding: 0 50px;
+            height: 65vh;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .era-section {
+            grid-column: 1;
+            grid-row: 1;
+            opacity: 0;
+            transform: translateY(40px) scale(0.97);
+            filter: blur(15px);
+            pointer-events: none;
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                        filter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .era-section.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+            pointer-events: all;
+        }
+
+        h1, h2 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            line-height: 0.95;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .subtitle {
+            font-family: monospace;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            margin-bottom: 35px;
+            text-transform: uppercase;
+        }
+
+        .cyber-card {
+            background: rgba(5, 7, 10, 0.75);
+            border-left: 2px solid #ffffff;
+            padding: 35px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .cyber-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, #ffffff, transparent);
+        }
+
+        p {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #cbd5e1;
+        }
+
+        .highlight {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        #era-99 .subtitle { color: #00ff88; }
+        #era-99 .cyber-card { border-left-color: #00ff88; }
+        #era-99 .cyber-card::before { background: linear-gradient(90deg, #00ff88, transparent); }
+        #era-99 p { font-family: monospace; color: #a3be8c; font-size: 1.05rem; }
+
+        #era-2008 .subtitle { color: #3b82f6; }
+        #era-2008 .cyber-card { border-left-color: #3b82f6; }
+        #era-2008 .cyber-card::before { background: linear-gradient(90deg, #3b82f6, transparent); }
+
+        #era-present .subtitle { color: #00f2fe; }
+        #era-present .cyber-card { border-left-color: #00f2fe; }
+        #era-present .cyber-card::before { background: linear-gradient(90deg, #00f2fe, transparent); }
+
+        #era-handshake .subtitle { color: #a78bfa; }
+        #era-handshake .cyber-card { border-left-color: #a78bfa; background: rgba(15, 10, 25, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        #era-handshake .cyber-card::before { background: linear-gradient(90deg, #a78bfa, transparent); }
+
+        .cyber-btn {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 15px 40px;
+            background: #ffffff;
+            color: #000000;
+            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid #ffffff;
+        }
+
+        .cyber-btn:hover {
+            background: transparent;
+            color: #ffffff;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+        }
+
+        .timeline-indicator {
+            position: absolute;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .dot {
+            width: 4px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.08);
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .dot::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: #ffffff;
+            transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .dot.active::after { height: 100%; }
+        #dot-99.active::after { background: #00ff88; }
+        #dot-2008.active::after { background: #3b82f6; }
+        #dot-present.active::after { background: #00f2fe; }
+        #dot-handshake.active::after { background: #a78bfa; }
+    </style>
+</head>
+<body>
+
+    <div class="scroll-container">
+        <div class="stage">
+            
+            <canvas id="cyberCanvas"></canvas>
+
+            <div class="content-wrapper">
+
+                <!-- EPISODE 1 -->
+                <div id="era-99" class="era-section active">
+                    <h1>Tech meets Business</h1>
+                    <div class="subtitle">// PIONIERZEIT // NODE: WELNET // CONNECT 56K // 1999</div>
+                    <div class="cyber-card">
+                        <p>
+                            Wer die digitale Transformation wirklich verstehen will, darf sie nicht nur aus Lehrbüchern kennen. 
+                            Man muss sie gebaut und wirtschaftlich skaliert haben. Wenn ich auf meine Laufbahn zurückblicke, 
+                            die 1999 als Softwareentwickler begann, sehe ich eine klare Evolution. 
+                            Es ist die Reise vom Web 1.0, in dem wir das Internet überhaupt erst interaktiv machten, 
+                            über den Aufbau eigener Unternehmen bis hin zu den dezentralen Architekturen von heute.
+                            <br><br>
+                            Mein Name ist Oliver Welge. Was als technisches Experiment begann, wuchs mit welnet.de zu einem 
+                            der größten kostenlosen Gästebuch-Dienste Deutschlands mit über 100.000 Mitgliedern heran. 
+                            In der Ära der tickenden Einwahlgebühren war das eine gewaltige Masse. Hier habe ich gelernt, 
+                            wie man verlässliche Infrastruktur konzipiert.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- EPISODE 2 -->
+                <div id="era-2008" class="era-section">
+                    <h2>Vom Entwickler zum Unternehmer</h2>
+                    <div class="subtitle">// SCALE PHASE // WELUSE GMBH // TEAM OF 20 // 2008</div>
+                    <div class="cyber-card">
+                        <p>
+                            Mit dem Wandel des Netzes veränderten sich auch meine Aufgaben. Ich bin über die Jahre vom Tech-Nerd 
+                            zum Unternehmer gewachsen. Aus den Gästebüchern von gestern wurden hochkomplexe Plattformen und Geschäftsmodelle, 
+                            die ich im Internet-Umfeld konzipiert, aufgebaut und skaliert habe.
+                            <br><br>
+                            Im Jahr 2008 gründete ich die <span class="highlight">weluse GmbH</span> in Kiel. Was klein begann, entwickelte sich zu einer 
+                            ernstzunehmenden Software- und Produktagentur mit einem <span class="highlight">Team von 20 Spezialisten</span>. 
+                            Über anderthalb Jahrzehnte hinweg haben wir die digitalen Architekturen für einige der größten Marken im 
+                            deutschsprachigen Raum gebaut, darunter Otto, AboutYou, XXXLutz und MediaMarkt. Mit snapmobl antizipierten wir zudem früh den radikalen Shift zum Mobile-First-Web.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- EPISODE 3 -->
+                <div id="era-present" class="era-section">
+                    <h2>Tech Advisory & Strategy</h2>
+                    <div class="subtitle">// STATE OF THE ART // AI & WEB3 ARCHITECTURES // NOW</div>
+                    <div class="cyber-card">
+                        <p>
+                            Technologie steht niemals still. Heute bewegen wir uns in einer Welt, in der Monolithe durch agile Cloud-Strukturen, 
+                            künstliche Intelligenz und dezentrale Web3-Ansätze abgelöst werden. Die größte Herausforderung für Unternehmen 
+                            liegt heute selten darin, dass sie Technologie nutzen, sondern welche und wie sie diese profitabel einsetzen.
+                            <br><br>
+                            Aus diesem Grund haben wir weluse strategisch weiterentwickelt. Weg von der reinen Code-Exekution, hin zum reinen 
+                            <span class="highlight">Tech Advisory</span>. Weil ich beide Welten aus eigener Erfahrung kenne, berate ich heute nicht als reiner Theoretiker. 
+                            Ich kenne die Tech Stacks und aktuellen Entwicklungen wie AI und Web3, verstehe aber genauso die wirtschaftliche Realität auf Augenhöhe.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- EPISODE 4 -->
+                <div id="era-handshake" class="era-section">
+                    <h2>Let's build the future</h2>
+                    <div class="subtitle">// EXECUTION NODE // CONNECT INTERFACE // THE HANDSHAKE</div>
+                    <div class="cyber-card">
+                        <p>
+                            Vom 56k-Modem bis zur künstlichen Intelligenz: Die Technologien wechseln im Minutentakt, aber der rote Faden bleibt derselbe. 
+                            Es ist die Leidenschaft dafür, komplexe technologische Architekturen so zu steuern, dass daraus echter, nachhaltiger Geschäftswert entsteht. 
+                            <br><br>
+                            Ich habe das Web nicht nur kommen sehen, ich habe funktionierende Unternehmen darin gebaut. Lassen Sie uns gemeinsam dafür sorgen, dass Ihre IT-Strategie, Ihre Tech-Entscheidungen und Ihre zukünftigen Geschäftsmodelle absolut krisenfest aufgestellt sind.
+                        </p>
+                        <a href="#" class="cyber-btn">Get in Touch</a>
+                    </div>
+                </div>
+
+            <div class="timeline-indicator">
+                <div id="dot-99" class="dot active" onclick="jumpToEra(0)"></div>
+                <div id="dot-2008" class="dot" onclick="jumpToEra(1)"></div>
+                <div id="dot-present" class="dot" onclick="jumpToEra(2)"></div>
+                <div id="dot-handshake" class="dot" onclick="jumpToEra(3)"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const eras = ['99', '2008', 'present', 'handshake'];
+        let currentIndex = 0;
+        let isTransitioning = false;
+
+        const canvas = document.getElementById('cyberCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        let particles = [];
+        let flowAngle = 0;
+
+        function initParticles() {
+            particles = [];
+            for(let i=0; i<120; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.8,
+                    vy: (Math.random() - 0.5) * 0.8,
+                    size: Math.random() * 2 + 1,
+                    brightness: Math.random()
+                });
+            }
+        }
+        initParticles();
+
+        function drawBackground() {
+            ctx.clearRect(0, 0, width, height);
+
+            if (currentIndex === 0) {
+                ctx.fillStyle = '#030406';
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.25)';
+                particles.forEach(p => {
+                    p.y += 0.3 + p.brightness * 0.4;
+                    if(p.y > height) p.y = 0;
+                    ctx.fillRect(p.x - (p.x % 16), p.y - (p.y % 16), 4, 4);
+                });
+
+            } else if (currentIndex === 1) {
+                ctx.fillStyle = '#05070b';
+                ctx.fillRect(0, 0, width, height);
+                
+                particles.forEach((p, idx) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if(p.x < 0 || p.x > width) p.vx *= -1;
+                    if(p.y < 0 || p.y > height) p.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size + 1, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+                    ctx.fill();
+
+                    for(let j = idx + 1; j < particles.length; j++) {
+                        let p2 = particles[j];
+                        let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                        if(dist < 90) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(59, 130, 246, ${0.15 * (1 - dist/90)})`;
+                            ctx.lineWidth = 0.8;
+                            ctx.stroke();
+                        }
+                    }
+                });
+
+            } else if (currentIndex === 2) {
+                ctx.fillStyle = '#020305';
+                ctx.fillRect(0, 0, width, height);
+
+                particles.forEach((p, idx) => {
+                    p.x += p.vx * 1.5;
+                    p.y += p.vy * 1.5;
+                    if(p.x < 0 || p.x > width) p.vx *= -1;
+                    if(p.y < 0 || p.y > height) p.vy *= -1;
+
+                    ctx.fillStyle = 'rgba(0, 242, 254, 0.6)';
+                    ctx.fillRect(p.x, p.y, 2, 2);
+
+                    for(let j = idx + 1; j < particles.length; j++) {
+                        let p2 = particles[j];
+                        let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                        if(dist < 130) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(0, 242, 254, ${0.25 * (1 - dist/130)})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                });
+
+            } else if (currentIndex === 3) {
+                flowAngle += 0.002;
+                
+                let grad1 = ctx.createRadialGradient(width*0.3, height*0.2, 0, width*0.3, height*0.2, width * 0.8);
+                grad1.addColorStop(0, '#1a0b2e');
+                grad1.addColorStop(0.5, '#050510');
+                grad1.addColorStop(1, '#020205');
+                ctx.fillStyle = grad1;
+                ctx.fillRect(0, 0, width, height);
+
+                let grad2 = ctx.createRadialGradient(width*0.7, height*0.8, 0, width*0.7, height*0.8, width * 0.6);
+                grad2.addColorStop(0, 'rgba(167, 139, 250, 0.08)');
+                grad2.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad2;
+                ctx.fillRect(0, 0, width, height);
+
+                particles.forEach(p => {
+                    let angle = Math.sin(p.x * 0.005 + flowAngle) * Math.cos(p.y * 0.005 + flowAngle) * Math.PI * 2;
+                    p.x += Math.cos(angle) * 0.4;
+                    p.y += Math.sin(angle) * 0.4;
+
+                    if(p.x < 0) p.x = width;
+                    if(p.x > width) p.x = 0;
+                    if(p.y < 0) p.y = height;
+                    if(p.y > height) p.y = 0;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${p.brightness * 0.4})`;
+                    ctx.fill();
+                });
+            }
+
+            requestAnimationFrame(drawBackground);
+        }
+        
+        requestAnimationFrame(drawBackground);
+
+        function transitionToEra(nextIndex) {
+            if (nextIndex < 0 || nextIndex >= eras.length || isTransitioning) return;
+            isTransitioning = true;
+
+            document.getElementById(`era-${eras[currentIndex]}`).classList.remove('active');
+            document.getElementById(`dot-${eras[currentIndex]}`).classList.remove('active');
+
+            currentIndex = nextIndex;
+            document.getElementById(`era-${eras[currentIndex]}`).classList.add('active');
+            document.getElementById(`dot-${eras[currentIndex]}`).classList.add('active');
+
+            setTimeout(() => {
+                isTransitioning = false;
+            }, 1200);
+        }
+
+        function jumpToEra(index) {
+            if(index === currentIndex || isTransitioning) return;
+            transitionToEra(index);
+        }
+
+        window.addEventListener('wheel', (e) => {
+            if (e.deltaY > 35) {
+                transitionToEra(currentIndex + 1);
+            } else if (e.deltaY < -35) {
+                transitionToEra(currentIndex - 1);
+            }
+        });
+
+        let touchStart = 0;
+        window.addEventListener('touchstart', (e) => { touchStart = e.touches.clientY; });
+        window.addEventListener('touchend', (e) => {
+            let touchEnd = e.changedTouches.clientY;
+            if (touchStart - touchEnd > 60) transitionToEra(currentIndex + 1);
+            if (touchEnd - touchStart > 60) transitionToEra(currentIndex - 1);
+        });
+    </script>
+</body>
+</html>
