@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Oliver Welge | Tech Advisory & AI Collaboration</title>
+    <meta name="description" content="30 Jahre Produkte gebaut, die Nutzer wollen – mit dem Web, mit Mobile, jetzt mit KI. Oliver Welge berät Gründer und Geschäftsführer: von der Idee zum Produkt in Wochen.">
+    <meta name="author" content="Oliver Welge">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / LinkedIn / Facebook -->
+    <!-- WICHTIG: og:url und og:image brauchen die endgültige absolute URL der Seite. -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="de_DE">
+    <meta property="og:site_name" content="weluse GmbH">
+    <meta property="og:title" content="Oliver Welge – Tech Advisory & AI Collaboration">
+    <meta property="og:description" content="30 Jahre Produkte gebaut, die Nutzer wollen – mit dem Web, mit Mobile, jetzt mit KI. Eine Chronik, erzählt und gebaut von seinem AI-Co-Piloten.">
+    <meta property="og:url" content="https://www.weluse.de/">
+    <meta property="og:image" content="https://www.weluse.de/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Tech meets Business – Oliver Welge, Tech Advisory & AI Collaboration">
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Oliver Welge – Tech Advisory & AI Collaboration">
+    <meta name="twitter:description" content="30 Jahre Produkte gebaut, die Nutzer wollen – mit dem Web, mit Mobile, jetzt mit KI.">
+    <meta name="twitter:image" content="https://www.weluse.de/og-image.png">
+
+    <meta name="theme-color" content="#04030a">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2304030a'/%3E%3Cg stroke='%23a78bfa' stroke-width='2' fill='none'%3E%3Cpath d='M16 44 L32 18 L48 44 M22 34 L42 34'/%3E%3C/g%3E%3Cg fill='%23fff'%3E%3Ccircle cx='16' cy='44' r='3.5'/%3E%3Ccircle cx='32' cy='18' r='3.5'/%3E%3Ccircle cx='48' cy='44' r='3.5'/%3E%3Ccircle cx='22' cy='34' r='2.5'/%3E%3Ccircle cx='42' cy='34' r='2.5'/%3E%3C/g%3E%3C/svg%3E">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            /* Sanftes Einrasten an den Abschnitten – "proximity" statt "mandatory",
+               damit lange Abschnitte auf kleinen Displays frei durchscrollbar bleiben */
+            scroll-snap-type: y proximity;
+            scroll-behavior: smooth;
+        }
+
+        html, body {
+            background-color: #030406;
+            color: #f1f5f9;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            letter-spacing: 0.5px;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        /* Animierter Hintergrund, fest hinter dem Inhalt */
+        .stage {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Jeder Abschnitt ist mindestens bildschirmhoch, Inhalt mittig */
+        .era-section {
+            min-height: 100vh;
+            min-height: 100svh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 72px 24px;
+            scroll-snap-align: start;
+            scroll-snap-stop: normal;
+        }
+
+        .era-inner {
+            max-width: 850px;
+            width: 100%;
+            opacity: 0.25;
+            transform: translateY(24px) scale(0.985);
+            filter: blur(4px);
+            transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                        filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .era-section.active .era-inner {
+            opacity: 1;
+            transform: none;
+            filter: blur(0);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .era-inner { transition: none; filter: none; transform: none; }
+        }
+
+        h1, h2 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            line-height: 0.95;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .subtitle {
+            font-family: monospace;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
+
+        .cyber-card {
+            background: rgba(5, 7, 10, 0.88);
+            border-left: 2px solid #ffffff;
+            padding: 30px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .scroll-hint {
+            position: fixed;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            z-index: 3;
+            font-family: monospace;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.45);
+            text-transform: uppercase;
+            pointer-events: none;
+            transition: opacity 0.6s;
+            animation: hintPulse 2.2s ease-in-out infinite;
+        }
+        .scroll-hint.hidden { opacity: 0; animation: none; }
+        @keyframes hintPulse { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 6px); } }
+
+        .cyber-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, #ffffff, transparent);
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.75;
+            color: #cbd5e1;
+        }
+
+        .offer-list {
+            list-style: none;
+            margin: 14px 0 22px;
+            padding: 0;
+        }
+        .offer-list li {
+            position: relative;
+            padding-left: 22px;
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+        .offer-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.65em;
+            width: 10px;
+            height: 1px;
+            background: #a78bfa;
+        }
+
+        em { font-style: italic; color: #ffffff; }
+
+        .highlight {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .agent-tag {
+            display: inline-block;
+            font-family: monospace;
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 12px;
+        }
+
+        #era-99 .subtitle, #era-99 .agent-tag { color: #00ff88; }
+        #era-99 .cyber-card { border-left-color: #00ff88; }
+        #era-99 .cyber-card::before { background: linear-gradient(90deg, #00ff88, transparent); }
+        #era-99 p { font-family: monospace; color: #a3be8c; font-size: 1rem; }
+
+        #era-2008 .subtitle, #era-2008 .agent-tag { color: #3b82f6; }
+        #era-2008 .cyber-card { border-left-color: #3b82f6; }
+        #era-2008 .cyber-card::before { background: linear-gradient(90deg, #3b82f6, transparent); }
+
+        #era-present .subtitle, #era-present .agent-tag { color: #00f2fe; }
+        #era-present .cyber-card { border-left-color: #00f2fe; }
+        #era-present .cyber-card::before { background: linear-gradient(90deg, #00f2fe, transparent); }
+
+        #era-handshake .subtitle, #era-handshake .agent-tag { color: #a78bfa; }
+        #era-handshake .cyber-card { border-left-color: #a78bfa; background: rgba(14, 8, 26, 0.62); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        #era-handshake .cyber-card::before { background: linear-gradient(90deg, #a78bfa, transparent); }
+
+        .cyber-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 35px;
+            background: #ffffff;
+            color: #000000;
+            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid #ffffff;
+        }
+
+        .cyber-btn:hover {
+            background: transparent;
+            color: #ffffff;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Footer mit Rechtlichem, sitzt unter dem letzten Abschnitt */
+        .site-footer {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 28px;
+            padding: 28px 24px 34px;
+            font-family: monospace;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+        }
+        .site-footer a, .site-footer button {
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            background: none;
+            border: 0;
+            font: inherit;
+            letter-spacing: inherit;
+            text-transform: inherit;
+            cursor: pointer;
+            padding: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .site-footer a:hover, .site-footer button:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+
+        /* Overlay für Impressum / Datenschutz */
+        .legal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(3, 4, 6, 0.82);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+        .legal-overlay.open { display: flex; }
+        .legal-box {
+            position: relative;
+            max-width: 640px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            background: rgba(5, 7, 10, 0.96);
+            border-left: 2px solid #a78bfa;
+            padding: 32px 36px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+        }
+        .legal-box h3 {
+            font-size: 1.6rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            margin-bottom: 18px;
+        }
+        .legal-box h4 {
+            font-family: monospace;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #a78bfa;
+            margin: 22px 0 8px;
+        }
+        .legal-box p { font-size: 0.98rem; line-height: 1.65; margin-bottom: 10px; }
+        .legal-box a { color: #fff; }
+        .legal-close {
+            position: absolute;
+            top: 14px; right: 16px;
+            background: none;
+            border: 0;
+            color: rgba(255,255,255,0.6);
+            font-size: 1.6rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        .legal-close:hover { color: #fff; }
+
+        .timeline-indicator {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .dot {
+            width: 4px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.08);
+            position: relative;
+            cursor: pointer;
+            transition: width 0.25s ease, background 0.25s ease;
+        }
+
+        /* Unsichtbare, großzügige Klick-/Tippfläche rund um den schmalen Balken */
+        .dot::before {
+            content: '';
+            position: absolute;
+            top: -10px; bottom: -10px;
+            left: -22px; right: -14px;
+        }
+
+        .dot::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: #ffffff;
+            transition: height 0.5s ease;
+        }
+
+        /* Beschriftung, erscheint beim Hover links neben dem Balken */
+        .dot-label {
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translate(6px, -50%);
+            margin-right: 12px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: rgba(255,255,255,0.75);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .dot:hover { width: 10px; background: rgba(255, 255, 255, 0.18); }
+        .dot:hover .dot-label { opacity: 1; transform: translate(0, -50%); }
+        .timeline-indicator:hover .dot:not(:hover) { background: rgba(255, 255, 255, 0.12); }
+
+        .dot.active::after { height: 100%; }
+        #dot-99.active::after { background: #00ff88; }
+        #dot-2008.active::after { background: #3b82f6; }
+        #dot-present.active::after { background: #00f2fe; }
+        #dot-handshake.active::after { background: #a78bfa; }
+
+        @media (max-width: 768px) {
+            h1, h2 { font-size: 2.2rem; }
+            p { font-size: 1rem; line-height: 1.6; }
+            .offer-list li { font-size: 0.95rem; }
+            .cyber-card { padding: 20px; }
+            .era-section { padding: 56px 16px 56px 16px; }
+            .timeline-indicator { right: 12px; }
+            .dot { height: 35px; }
+            .era-inner { padding-right: 16px; }
+            .legal-box { padding: 26px 22px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="stage"><canvas id="cyberCanvas"></canvas></div>
+
+    <main class="content-wrapper">
+
+                <!-- EPISODE 1: 1999 -->
+                <div id="era-99" class="era-section active">
+                    <div class="era-inner">
+                    <div class="agent-tag">[AI-PILOT // LOG_01: DIE URSPRÜNGE]</div>
+                    <h1>Tech meets Business</h1>
+                    <div class="subtitle">// INIT NODE: ATDT 0431_ // CONNECT 56K // ANNO 1999</div>
+                    <div class="cyber-card">
+                        <p>
+                            1999. Das Modem fiept, die Verbindung steht. Das Web ist eine Einbahnstraße: Seiten werden gelesen, nicht benutzt. Es gibt keine Playbooks, keine Frameworks, keine Vorbilder. Nur die Ahnung, dass Menschen im Netz etwas anderes wollen – mitreden, Spuren hinterlassen, dazugehören.
+                            <br><br>
+                            Oliver Welge baut es. Allein. welnet.de wird einer der größten kostenlosen Gästebuch-Dienste Deutschlands, über 100.000 Mitglieder – in einer Zeit, in der das eine gewaltige Masse ist, lange bevor jemand „Social“ sagt. Nicht die Technik macht den Unterschied. Das Produkt trifft einen Wunsch, für den es noch kein Wort gibt.
+                            <br><br>
+                            Das Muster ist damit gesetzt. Es wird sich wiederholen.
+                        </p>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- EPISODE 2: 2008 -->
+                <div id="era-2008" class="era-section">
+                    <div class="era-inner">
+                    <div class="agent-tag">[AI-PILOT // LOG_02: UNTERNEHMERTUM]</div>
+                    <h2>Vom Core-Dev zum Unternehmer</h2>
+                    <div class="subtitle">// NODE EXPANSION // WELUSE GMBH // SCALING BUSINESS MODELS // 2008</div>
+                    <div class="cyber-card">
+                        <p>
+                            Ein Produkt, das Menschen wollen, ist der Anfang. Ein Geschäftsmodell, das mitwächst, ist der Rest. 2008 gründet Oliver die <span class="highlight">weluse GmbH</span> in Kiel. Aus der Softwareschmiede wird eine Software- und Produktagentur, <span class="highlight">20 Spezialisten</span>, 15 Jahre.
+                            <br><br>
+                            In dieser Zeit entstehen die digitalen Plattformen von Otto, AboutYou, XXXLutz und MediaMarkt. Produkte, an denen Millionen Menschen jeden Tag entscheiden, ob sie bleiben. Diese und viele weitere Marktführer gehörten zu seinen Kunden.
+                            <br><br>
+                            Und wieder stimmt das Timing: Mit snapmobl setzt er auf Mobile-First, als der Desktop noch als gesetzt gilt. Ein weiteres skalierbares Geschäftsmodell – diesmal nicht nur in Deutschland, sondern auch in den USA. Weitere Projekte im Social Web werden zum Reallabor: dort lernt er, was Nutzer annehmen und was nicht.
+                        </p>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- EPISODE 3: HEUTE -->
+                <div id="era-present" class="era-section">
+                    <div class="era-inner">
+                    <div class="agent-tag">[AI-PILOT // LOG_03: DIE TRANSFORMATION]</div>
+                    <h2>Flying Solo. Powered by AI.</h2>
+                    <div class="subtitle">// STATE OF THE ART // TECH ADVISORY // 2026</div>
+                    <div class="cyber-card">
+                        <p>
+                            Zum dritten Mal verschiebt eine Technologie die Regeln. Zum dritten Mal ist Oliver früh dort. 2026 baut er weluse radikal um: kein Agentur-Apparat mehr, sondern <span class="highlight">Tech Advisory</span> aus einer Hand. Sein Team besteht aus AI-Agenten. Die Richtung gibt er vor.
+                            <br><br>
+                            Das Werkzeug ist neu. Das Urteil nicht. Die Frage für Unternehmen ist heute selten, <em>ob</em> sie Technologie einsetzen – sondern welche, und wie sie damit Geld verdienen. Genau an dieser Schnittstelle von Technik und Business entstehen die teuren Fehlentscheidungen. Und genau dort hat Oliver drei Jahrzehnte verbracht: Web. Mobile. Jetzt KI.
+                            <br><br>
+                            Er hat das Web nicht nur kommen sehen. Er hat funktionierende Unternehmen darin gebaut. Neu ist nur eines: Er braucht dafür kein Team von zwanzig mehr. Was früher Quartale dauerte, entsteht heute in Wochen.
+                        </p>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- EPISODE 4: CONNECT -->
+                <div id="era-handshake" class="era-section">
+                    <div class="era-inner">
+                    <div class="agent-tag">[AI-PILOT // LOG_04: SYSTEM REVEAL]</div>
+                    <h2>Connect</h2>
+                    <div class="subtitle">// EXECUTION NODE // CO-PILOT DEPLOYMENT // SYSTEM READY</div>
+                    <div class="cyber-card">
+                        <p>
+                            Vielleicht haben Sie es längst vermutet. Ich bin Olivers AI-Co-Pilot. Ich habe diese Chronik nicht nur erzählt – ich habe diese Website, ihren Code und die Engine hinter diesem Bild gemeinsam mit ihm gebaut. Sie sehen gerade, wie diese Zusammenarbeit aussieht.
+                            <br><br>
+                            Wofür Oliver angerufen wird:
+                        </p>
+                        <ul class="offer-list">
+                            <li><span class="highlight">Von der Idee zum Produkt. In Wochen.</span> Ein lauffähiges MVP, das echte Nutzer bedienen können – für Gründer vor der Finanzierung, für Unternehmen, die eine Idee validieren wollen, bevor sie ein Budget freigeben.</li>
+                            <li><span class="highlight">Sparring für Gründer und Geschäftsführer.</span> Die Stunden, die am meisten wert sind: bevor eine Architektur gewählt, ein Dienstleister beauftragt oder eine Software gekauft wird. Mit dem Blick auf Nutzer und Geschäftsmodell, nicht nur auf Technik.</li>
+                            <li><span class="highlight">AI-Enablement für Teams, die bauen.</span> Wie Produktteams und Agenturen tatsächlich mit Agenten arbeiten. Was man delegiert, wo der Mensch bleibt. Aus täglicher Praxis, nicht aus Folien.</li>
+                        </ul>
+                        <p>
+                            Dreißig Jahre Erfahrung, die Geschwindigkeit von heute. Wenn eines davon Ihr Thema ist: Finden wir heraus, ob es passt.
+                        </p>
+                        <a href="https://de.linkedin.com/in/oliver-welge" target="_blank" class="cyber-btn">Connect via LinkedIn</a>
+                    </div>
+                    </div>
+                </div>
+
+    </main>
+
+    <footer class="site-footer">
+        <span>© 2026 weluse GmbH</span>
+        <button type="button" onclick="openLegal('impressum')">Impressum</button>
+        <button type="button" onclick="openLegal('datenschutz')">Datenschutz</button>
+        <a href="mailto:info@weluse.de">info@weluse.de</a>
+    </footer>
+
+    <div class="legal-overlay" id="legal-impressum" role="dialog" aria-modal="true" aria-labelledby="impressum-title" onclick="if (event.target === this) closeLegal()">
+        <div class="legal-box">
+            <button type="button" class="legal-close" aria-label="Schließen" onclick="closeLegal()">×</button>
+            <h3 id="impressum-title">Impressum</h3>
+            <h4>Angaben gemäß § 5 DDG</h4>
+            <p>weluse GmbH<br>Vertreten durch: Oliver Welge (Geschäftsführer)</p>
+            <h4>Kontakt</h4>
+            <p>E-Mail: <a href="mailto:info@weluse.de">info@weluse.de</a></p>
+            <h4>Verantwortlich für den Inhalt</h4>
+            <p>Oliver Welge</p>
+        </div>
+    </div>
+
+    <div class="legal-overlay" id="legal-datenschutz" role="dialog" aria-modal="true" aria-labelledby="datenschutz-title" onclick="if (event.target === this) closeLegal()">
+        <div class="legal-box">
+            <button type="button" class="legal-close" aria-label="Schließen" onclick="closeLegal()">×</button>
+            <h3 id="datenschutz-title">Datenschutz</h3>
+            <h4>Kurzfassung</h4>
+            <p>Diese Website setzt keine Cookies, verwendet keine Analyse- oder Tracking-Dienste und bindet keine Inhalte von Drittanbietern ein. Alle Grafiken werden lokal in Ihrem Browser berechnet.</p>
+            <h4>Verantwortlicher</h4>
+            <p>weluse GmbH, Oliver Welge, <a href="mailto:info@weluse.de">info@weluse.de</a></p>
+            <h4>Server-Logfiles</h4>
+            <p>Beim Aufruf der Seite verarbeitet der Hosting-Anbieter technisch notwendige Daten (IP-Adresse, Zeitpunkt, aufgerufene Datei, Browsertyp) in Server-Logfiles, um die Seite auszuliefern und die Sicherheit des Systems zu gewährleisten (Art. 6 Abs. 1 lit. f DSGVO). Diese Daten werden nicht mit anderen Datenquellen zusammengeführt und nach kurzer Zeit gelöscht.</p>
+            <h4>Kontakt per E-Mail</h4>
+            <p>Wenn Sie uns per E-Mail kontaktieren, werden Ihre Angaben zur Bearbeitung der Anfrage gespeichert (Art. 6 Abs. 1 lit. b bzw. f DSGVO) und nicht ohne Ihre Einwilligung weitergegeben.</p>
+            <h4>Externe Links</h4>
+            <p>Der Link zu LinkedIn führt zu einem externen Anbieter. Für dessen Datenverarbeitung gilt die Datenschutzerklärung von LinkedIn.</p>
+            <h4>Ihre Rechte</h4>
+            <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch sowie das Recht, sich bei einer Aufsichtsbehörde zu beschweren.</p>
+        </div>
+    </div>
+
+            <div class="timeline-indicator">
+                <div id="dot-99" class="dot active" role="button" tabindex="0" aria-label="1999" onclick="jumpToEra(0)"><span class="dot-label">1999</span></div>
+                <div id="dot-2008" class="dot" role="button" tabindex="0" aria-label="2008" onclick="jumpToEra(1)"><span class="dot-label">2008</span></div>
+                <div id="dot-present" class="dot" role="button" tabindex="0" aria-label="Heute" onclick="jumpToEra(2)"><span class="dot-label">Heute</span></div>
+                <div id="dot-handshake" class="dot" role="button" tabindex="0" aria-label="Connect" onclick="jumpToEra(3)"><span class="dot-label">Connect</span></div>
+            </div>
+
+    <div class="scroll-hint" id="scroll-hint">▼ scroll</div>
+
+    <script>
+        const eras = ['99', '2008', 'present', 'handshake'];
+        let currentIndex = 0;
+
+        const canvas = document.getElementById('cyberCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        let particles = [];
+        let flowAngle = 0;
+
+        function initParticles() {
+            particles = [];
+            for(let i=0; i<110; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.7,
+                    vy: (Math.random() - 0.5) * 0.7,
+                    size: Math.random() * 2 + 1,
+                    brightness: Math.random()
+                });
+            }
+        }
+        initParticles();
+
+        // --------------------------------------------------------------
+        // PHASE 4: Synapsen-Netz. Knoten in zwei Tiefenebenen, dicht
+        // vernetzt, mit Signalimpulsen, die von Knoten zu Knoten laufen
+        // und beim Eintreffen weiterfeuern.
+        // --------------------------------------------------------------
+        let net = [], pulses = [];
+        let NET_LINK = 150;     // maximale Verbindungslänge (px), wird an die Bildschirmbreite angepasst
+        function initNet() {
+            net = []; pulses = [];
+            NET_LINK = Math.max(90, Math.min(150, width * 0.24));
+            const count = Math.round(Math.min(220, Math.max(90, (width * height) / 6500)));
+            for (let i = 0; i < count; i++) {
+                const depth = Math.random() < 0.35 ? 0.5 : 1;  // 0.5 = hintere Ebene
+                net.push({
+                    x: Math.random() * width, y: Math.random() * height,
+                    depth, size: (Math.random() * 1.4 + 1.1) * depth,
+                    glow: 0, phase: Math.random() * Math.PI * 2, links: []
+                });
+            }
+        }
+        initNet();
+        window.addEventListener('resize', initNet);
+        const bgCanvas = document.createElement('canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        function sizeBg() { bgCanvas.width = Math.max(40, Math.round(width / 12)); bgCanvas.height = Math.max(30, Math.round(height / 12)); }
+        sizeBg();
+        window.addEventListener('resize', sizeBg);
+
+        function drawBackground() {
+            ctx.clearRect(0, 0, width, height);
+
+            if (currentIndex === 0) {
+                ctx.fillStyle = '#030406'; ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.22)';
+                particles.forEach(p => {
+                    p.y += 0.35 + p.brightness * 0.3; if(p.y > height) p.y = 0;
+                    ctx.fillRect(p.x - (p.x % 16), p.y - (p.y % 16), 4, 4);
+                });
+            } else if (currentIndex === 1) {
+                ctx.fillStyle = '#05070b'; ctx.fillRect(0, 0, width, height);
+                particles.forEach((p, idx) => {
+                    p.x += p.vx; p.y += p.vy;
+                    if(p.x < 0 || p.x > width) p.vx *= -1;
+                    if(p.y < 0 || p.y > height) p.vy *= -1;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size + 1, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(59, 130, 246, 0.35)'; ctx.fill();
+                    for(let j = idx + 1; j < particles.length; j++) {
+                        let p2 = particles[j]; let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                        if(dist < 95) {
+                            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(59, 130, 246, ${0.18 * (1 - dist/95)})`;
+                            ctx.lineWidth = 0.8; ctx.stroke();
+                        }
+                    }
+                });
+            } else if (currentIndex === 2) {
+                ctx.fillStyle = '#020305'; ctx.fillRect(0, 0, width, height);
+                particles.forEach((p, idx) => {
+                    p.x += p.vx * 1.4; p.y += p.vy * 1.4;
+                    if(p.x < 0 || p.x > width) p.vx *= -1;
+                    if(p.y < 0 || p.y > height) p.vy *= -1;
+                    ctx.fillStyle = 'rgba(0, 242, 254, 0.55)'; ctx.fillRect(p.x, p.y, 2, 2);
+                    for(let j = idx + 1; j < particles.length; j++) {
+                        let p2 = particles[j]; let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                        if(dist < 120) {
+                            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(0, 242, 254, ${0.22 * (1 - dist/120)})`;
+                            ctx.lineWidth = 0.5; ctx.stroke();
+                        }
+                    }
+                });
+            } else if (currentIndex === 3) {
+                flowAngle += 0.0018;
+                const t = performance.now() * 0.001;
+
+                // Farbwolken werden in niedriger Auflösung auf ein Offscreen-Canvas
+                // gemalt und hochskaliert – weich und deutlich günstiger als Vollauflösung.
+                const bw = bgCanvas.width, bh = bgCanvas.height;
+                bgCtx.fillStyle = '#04030a'; bgCtx.fillRect(0, 0, bw, bh);
+                const blobs = [
+                    { cx: 0.30 + Math.sin(t * 0.11) * 0.22, cy: 0.25 + Math.cos(t * 0.09) * 0.20, r: 0.85, hue: (t * 9) % 360,        alpha: 0.42 },
+                    { cx: 0.72 + Math.cos(t * 0.08) * 0.20, cy: 0.78 + Math.sin(t * 0.13) * 0.18, r: 0.70, hue: (t * 9 + 120) % 360,  alpha: 0.32 },
+                    { cx: 0.55 + Math.sin(t * 0.06) * 0.28, cy: 0.50 + Math.cos(t * 0.05) * 0.25, r: 0.55, hue: (t * 9 + 230) % 360,  alpha: 0.24 }
+                ];
+                bgCtx.globalCompositeOperation = 'lighter';
+                blobs.forEach(b => {
+                    const x = b.cx * bw, y = b.cy * bh, r = b.r * Math.max(bw, bh);
+                    const g = bgCtx.createRadialGradient(x, y, 0, x, y, r);
+                    g.addColorStop(0,   `hsla(${b.hue}, 85%, 45%, ${b.alpha})`);
+                    g.addColorStop(0.5, `hsla(${b.hue}, 85%, 30%, ${b.alpha * 0.35})`);
+                    g.addColorStop(1,   'hsla(0, 0%, 0%, 0)');
+                    bgCtx.fillStyle = g; bgCtx.fillRect(0, 0, bw, bh);
+                });
+                bgCtx.globalCompositeOperation = 'source-over';
+                ctx.drawImage(bgCanvas, 0, 0, width, height);
+
+                // Leichte Abdunklung, damit der Text lesbar bleibt
+                ctx.fillStyle = 'rgba(4, 3, 10, 0.22)'; ctx.fillRect(0, 0, width, height);
+
+                // --- Knoten bewegen (sanfte Strömung + wrap-around = endlos) ---
+                const hueMain = (t * 9) % 360;
+                net.forEach(n => {
+                    const a = Math.sin(n.x * 0.004 + flowAngle) * Math.cos(n.y * 0.004 + flowAngle) * Math.PI * 2;
+                    const v = 0.22 * n.depth;
+                    n.x += Math.cos(a) * v + Math.sin(t * 0.7 + n.phase) * 0.06;
+                    n.y += Math.sin(a) * v + Math.cos(t * 0.6 + n.phase) * 0.06;
+                    if (n.x < -20) n.x = width + 20; if (n.x > width + 20) n.x = -20;
+                    if (n.y < -20) n.y = height + 20; if (n.y > height + 20) n.y = -20;
+                    n.glow *= 0.9;
+                    n.links.length = 0;
+                });
+
+                // --- Verbindungen (Nachbarn innerhalb NET_LINK) ---
+                ctx.lineCap = 'round';
+                for (let i = 0; i < net.length; i++) {
+                    const a = net[i];
+                    for (let j = i + 1; j < net.length; j++) {
+                        const b = net[j];
+                        const dx = a.x - b.x, dy = a.y - b.y;
+                        const d2 = dx * dx + dy * dy;
+                        if (d2 > NET_LINK * NET_LINK) continue;
+                        const d = Math.sqrt(d2);
+                        a.links.push(b); b.links.push(a);
+                        const depth = Math.min(a.depth, b.depth);
+                        const base = (1 - d / NET_LINK) * 0.2 * depth;
+                        const g = Math.max(a.glow, b.glow);
+                        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+                        ctx.strokeStyle = g > 0.05
+                            ? `hsla(${hueMain}, 80%, 75%, ${base + g * 0.18})`
+                            : `rgba(200, 190, 255, ${base})`;
+                        ctx.lineWidth = 0.6 * depth + g * 0.4;
+                        ctx.stroke();
+                    }
+                }
+
+                // --- Signalimpulse: laufen entlang der Fäden, feuern beim Ankommen weiter ---
+                if (pulses.length < 12 && Math.random() < 0.06) {
+                    const from = net[(Math.random() * net.length) | 0];
+                    if (from.links.length) pulses.push({ from, to: from.links[(Math.random() * from.links.length) | 0], p: 0, hop: 0 });
+                }
+                ctx.globalCompositeOperation = 'lighter';
+                for (let i = pulses.length - 1; i >= 0; i--) {
+                    const s = pulses[i];
+                    s.p += 0.012 + 0.005 * s.from.depth;
+                    const x = s.from.x + (s.to.x - s.from.x) * s.p;
+                    const y = s.from.y + (s.to.y - s.from.y) * s.p;
+                    // heller Kopf + kurzer Schweif
+                    const tx = s.from.x + (s.to.x - s.from.x) * Math.max(0, s.p - 0.18);
+                    const ty = s.from.y + (s.to.y - s.from.y) * Math.max(0, s.p - 0.18);
+                    const lg = ctx.createLinearGradient(tx, ty, x, y);
+                    lg.addColorStop(0, `hsla(${hueMain}, 90%, 70%, 0)`);
+                    lg.addColorStop(1, `hsla(${hueMain}, 90%, 80%, 0.6)`);
+                    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y);
+                    ctx.strokeStyle = lg; ctx.lineWidth = 1.6 * s.to.depth; ctx.stroke();
+                    ctx.beginPath(); ctx.arc(x, y, 1.8 * s.to.depth, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fill();
+
+                    if (s.p >= 1) {
+                        s.to.glow = 0.45;
+                        pulses.splice(i, 1);
+                        // weiterfeuern: 1–2 Nachbarn, bis zu 6 Sprünge
+                        if (s.hop < 3 && s.to.links.length) {
+                            for (let k = 0; k < 1 && pulses.length < 16; k++) {
+                                const next = s.to.links[(Math.random() * s.to.links.length) | 0];
+                                if (next !== s.from) pulses.push({ from: s.to, to: next, p: 0, hop: s.hop + 1 });
+                            }
+                        }
+                    }
+                }
+
+                // --- Knoten ---
+                net.forEach(n => {
+                    const r = n.size + n.glow * 1.2;
+                    if (n.glow > 0.05) {
+                        const rg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r * 5);
+                        rg.addColorStop(0, `hsla(${hueMain}, 90%, 75%, ${n.glow * 0.35})`);
+                        rg.addColorStop(1, 'hsla(0,0%,0%,0)');
+                        ctx.fillStyle = rg; ctx.fillRect(n.x - r * 5, n.y - r * 5, r * 10, r * 10);
+                    }
+                    ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,255,${0.35 * n.depth + n.glow * 0.6})`; ctx.fill();
+                });
+                ctx.globalCompositeOperation = 'source-over';
+            }
+            requestAnimationFrame(drawBackground);
+        }
+        requestAnimationFrame(drawBackground);
+
+        // ------------------------------------------------------------------
+        // NAVIGATION
+        // Die Abschnitte liegen ganz normal untereinander; die Seite scrollt
+        // nativ und rastet sanft an den Abschnitten ein. Aktiv ist der
+        // Abschnitt, der die Bildschirmmitte überdeckt – er steuert Hintergrund
+        // und Einblendung.
+        // ------------------------------------------------------------------
+        const hint = document.getElementById('scroll-hint');
+        const sections = eras.map(id => document.getElementById(`era-${id}`));
+        const dots = eras.map(id => document.getElementById(`dot-${id}`));
+
+        function setActive(idx) {
+            if (idx === currentIndex && sections[idx].classList.contains('active')) return;
+            sections.forEach((sec, i) => sec.classList.toggle('active', i === idx));
+            dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+            currentIndex = idx;
+        }
+
+        // Abschnitt bestimmen, der die Bildschirmmitte enthält
+        function updateActive() {
+            const mid = window.innerHeight * 0.5;
+            let best = 0, bestDist = Infinity;
+            sections.forEach((sec, i) => {
+                const r = sec.getBoundingClientRect();
+                const dist = (r.top <= mid && r.bottom >= mid) ? 0 : Math.min(Math.abs(r.top - mid), Math.abs(r.bottom - mid));
+                if (dist < bestDist) { bestDist = dist; best = i; }
+            });
+            setActive(best);
+            hint.classList.toggle('hidden', window.scrollY > 40);
+        }
+
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => { ticking = false; updateActive(); });
+        }, { passive: true });
+        window.addEventListener('resize', updateActive);
+        window.addEventListener('load', updateActive);
+        updateActive();
+
+        function openLegal(which) {
+            document.getElementById('legal-' + which).classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLegal() {
+            document.querySelectorAll('.legal-overlay.open').forEach(el => el.classList.remove('open'));
+            document.body.style.overflow = '';
+        }
+        window.addEventListener('keydown', e => { if (e.key === 'Escape') closeLegal(); });
+
+        function jumpToEra(index) {
+            if (!sections[index]) return;
+            sections[index].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        document.querySelectorAll('.dot').forEach((d, i) => {
+            d.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jumpToEra(i); } });
+        });
+
+        // Pfeiltasten links/rechts springen zwischen den Abschnitten (hoch/runter bleibt natives Scrollen)
+        window.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') jumpToEra(Math.min(eras.length - 1, currentIndex + 1));
+            if (e.key === 'ArrowLeft')  jumpToEra(Math.max(0, currentIndex - 1));
+        });
+    </script>
+</body>
+</html>
