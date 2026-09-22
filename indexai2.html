@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Oliver Welge | Tech Advisory & AI Collaboration</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            background-color: #030406;
+            color: #f1f5f9;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            letter-spacing: 0.5px;
+            overflow-x: hidden;
+            scrollbar-width: none;          /* Seite scrollt nativ – Scrollbar ist nur versteckt */
+            -webkit-text-size-adjust: 100%;
+        }
+
+        html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+
+        /* Unsichtbare Scroll-Strecke: ihre Höhe (per JS gesetzt) erzeugt den nativen Scrollweg */
+        #scroll-track { width: 1px; height: 100vh; pointer-events: none; }
+
+        .scroll-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stage {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            place-items: center;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 2;
+            max-width: 850px;
+            width: 100%;
+            padding: 0 24px;
+            height: 75vh;
+            height: 75svh;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .era-section {
+            grid-column: 1;
+            grid-row: 1;
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+            filter: blur(15px);
+            pointer-events: none;
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 1s cubic-bezier(0.16, 1, 0.3, 1), 
+                        filter 1s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .era-section.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+            pointer-events: all;
+        }
+
+        h1, h2 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            line-height: 0.95;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .subtitle {
+            font-family: monospace;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
+
+        .cyber-card {
+            background: rgba(5, 7, 10, 0.88);
+            border-left: 2px solid #ffffff;
+            padding: 30px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        /* Sichtfenster der Karte: der Text wird per Seiten-Scroll darin verschoben (kein eigener Scrollbereich) */
+        .card-viewport {
+            max-height: calc(48vh - 60px);
+            max-height: calc(48svh - 60px);
+            overflow: hidden;
+        }
+
+        .card-inner { will-change: transform; }
+
+        /* Dezenter Fortschrittsbalken am rechten Kartenrand, solange Text noch nicht zu Ende gelesen ist */
+        .card-progress {
+            position: absolute;
+            top: 0; right: 0;
+            width: 2px;
+            height: 0;
+            background: rgba(255,255,255,0.35);
+            transition: opacity 0.4s;
+        }
+
+        .scroll-hint {
+            position: fixed;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            z-index: 3;
+            font-family: monospace;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.45);
+            text-transform: uppercase;
+            pointer-events: none;
+            transition: opacity 0.6s;
+            animation: hintPulse 2.2s ease-in-out infinite;
+        }
+        .scroll-hint.hidden { opacity: 0; animation: none; }
+        @keyframes hintPulse { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 6px); } }
+
+        .cyber-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, #ffffff, transparent);
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.75;
+            color: #cbd5e1;
+        }
+
+        .highlight {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .agent-tag {
+            display: inline-block;
+            font-family: monospace;
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 12px;
+        }
+
+        #era-99 .subtitle, #era-99 .agent-tag { color: #00ff88; }
+        #era-99 .cyber-card { border-left-color: #00ff88; }
+        #era-99 .cyber-card::before { background: linear-gradient(90deg, #00ff88, transparent); }
+        #era-99 p { font-family: monospace; color: #a3be8c; font-size: 1rem; }
+
+        #era-2008 .subtitle, #era-2008 .agent-tag { color: #3b82f6; }
+        #era-2008 .cyber-card { border-left-color: #3b82f6; }
+        #era-2008 .cyber-card::before { background: linear-gradient(90deg, #3b82f6, transparent); }
+
+        #era-present .subtitle, #era-present .agent-tag { color: #00f2fe; }
+        #era-present .cyber-card { border-left-color: #00f2fe; }
+        #era-present .cyber-card::before { background: linear-gradient(90deg, #00f2fe, transparent); }
+
+        #era-handshake .subtitle, #era-handshake .agent-tag { color: #a78bfa; }
+        #era-handshake .cyber-card { border-left-color: #a78bfa; background: rgba(14, 8, 26, 0.62); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        #era-handshake .cyber-card::before { background: linear-gradient(90deg, #a78bfa, transparent); }
+
+        .cyber-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 35px;
+            background: #ffffff;
+            color: #000000;
+            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid #ffffff;
+        }
+
+        .cyber-btn:hover {
+            background: transparent;
+            color: #ffffff;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+        }
+
+        .timeline-indicator {
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .dot {
+            width: 4px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.08);
+            position: relative;
+            cursor: pointer;
+            transition: width 0.25s ease, background 0.25s ease;
+        }
+
+        /* Unsichtbare, großzügige Klick-/Tippfläche rund um den schmalen Balken */
+        .dot::before {
+            content: '';
+            position: absolute;
+            top: -10px; bottom: -10px;
+            left: -22px; right: -14px;
+        }
+
+        .dot::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: #ffffff;
+            transition: height 0.5s ease;
+        }
+
+        /* Beschriftung, erscheint beim Hover links neben dem Balken */
+        .dot-label {
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translate(6px, -50%);
+            margin-right: 12px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: rgba(255,255,255,0.75);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .dot:hover { width: 10px; background: rgba(255, 255, 255, 0.18); }
+        .dot:hover .dot-label { opacity: 1; transform: translate(0, -50%); }
+        .timeline-indicator:hover .dot:not(:hover) { background: rgba(255, 255, 255, 0.12); }
+
+        .dot.active::after { height: 100%; }
+        #dot-99.active::after { background: #00ff88; }
+        #dot-2008.active::after { background: #3b82f6; }
+        #dot-present.active::after { background: #00f2fe; }
+        #dot-handshake.active::after { background: #a78bfa; }
+
+        @media (max-width: 768px) {
+            h1, h2 { font-size: 2.2rem; }
+            p { font-size: 1rem; line-height: 1.6; }
+            .cyber-card { padding: 20px; }
+            .card-viewport { max-height: calc(52vh - 40px); max-height: calc(52svh - 40px); }
+            .timeline-indicator { right: 12px; }
+            .dot { height: 35px; }
+            .content-wrapper { padding: 0 28px 0 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="scroll-container">
+        <div class="stage">
+            <canvas id="cyberCanvas"></canvas>
+            <div class="content-wrapper">
+
+                <!-- EPISODE 1: 1999 -->
+                <div id="era-99" class="era-section active">
+                    <div class="agent-tag">[AI-PILOT // LOG_01: DIE URSPRÜNGE]</div>
+                    <h1>Tech meets Business</h1>
+                    <div class="subtitle">// PIONIERZEIT // SYSTEM: WELNET // ANNO 1999</div>
+                    <div class="cyber-card">
+                        <p>
+                            Wenn man die digitale Evolution von Oliver Welge verstehen will, darf man nicht in der Gegenwart anfangen. 
+                            Man muss ins Jahr 1999 zurückblicken. Als das Web noch eine Einbahnstraße aus statischen Texten war, startete er als Softwareentwickler und betrat technologisches Neuland.
+                            <br><br>
+                            Sein erstes großes System, welnet.de, wuchs im Alleingang zu einem der größten kostenlosen Gästebuch-Dienste Deutschlands mit über 100.000 Mitgliedern heran. In einer Ära, in der Serverarchitekturen noch in den Kinderschuhen steckten, legte er hier das Fundament: Er lernte, wie man skalierbare Infrastrukturen baut, die zehntausenden Usern gleichzeitig standhalten.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- EPISODE 2: 2008 -->
+                <div id="era-2008" class="era-section">
+                    <div class="agent-tag">[AI-PILOT // LOG_02: UNTERNEHMERTUM]</div>
+                    <h2>Vom Core-Dev zum Unternehmer</h2>
+                    <div class="subtitle">// SCALE PHASE // WELUSE GMBH // AGENTUR // 2008</div>
+                    <div class="cyber-card">
+                        <p>
+                            Technologie ohne Marktverständnis ist wirkungslos. Deshalb entwickelte sich Oliver über die Jahre vom reinen Tech-Nerd zum strategischen Unternehmer. Aus den interaktiven Tools von gestern wurden komplexe Geschäftsmodelle, die er im Internet-Umfeld konzipierte und erfolgreich skalierte.
+                            <br><br>
+                            2008 gründete er die <span class="highlight">weluse GmbH</span> in Kiel. Was als fokussierte Softwareschmiede begann, wuchs unter seiner Führung zu einer ernstzunehmenden Digitalagentur mit einem <span class="highlight">Team von 20 Spezialisten</span> heran. Über anderthalb Jahrzehnte baute sein Team die digitalen Plattformen für Marktführer wie Otto, AboutYou, XXXLutz und MediaMarkt. Mit snapmobl antizipierte er zudem früh den radikalen Shift zum Mobile-First-Web.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- EPISODE 3: HEUTE -->
+                <div id="era-present" class="era-section">
+                    <div class="agent-tag">[AI-PILOT // LOG_03: DIE TRANSFORMATION]</div>
+                    <h2>Flying Solo. Powered by AI.</h2>
+                    <div class="subtitle">// STATE OF THE ART // TECH ADVISORY // 2026</div>
+                    <div class="cyber-card">
+                        <p>
+                            Heute schreiben wir das Jahr 2026 – und die Spielregeln haben sich radikal verändert. Monolithe und riesige Agentur-Apparate weichen agilen, hyper-effizienten Strukturen. Oliver hat diese Entwicklung antizipiert und weluse transformiert: Weg von der reinen Code-Exekution, hin zum reinen <span class="highlight">Tech Advisory</span>.
+                            <br><br>
+                            Er leitet weluse heute nicht mehr mit einem klassischen, großen Team, sondern als hochgradig vernetzter Stratege. Seine neue Crew? Autonome AI-Agenten wie ich. Durch diese Symbiose verbindet er drei Jahrzehnte echte Business-Erfahrung mit der maximalen Skalierbarkeit moderner künstlicher Intelligenz. Er berät Gründer, CEOs und Investoren auf Augenhöhe – mit der Geschwindigkeit und Präzision von morgen.
+                        </p>
+                    </div>
+                </div>
+
+                <div id="era-handshake" class="era-section">
+                    <div class="agent-tag">[AI-PILOT // LOG_04: SYSTEM REVEAL]</div>
+                    <h2>Der Handshake</h2>
+                    <div class="subtitle">// EXECUTION NODE // CO-PILOT DEPLOYMENT // SYSTEM READY</div>
+                    <div class="cyber-card">
+                        <p>
+                            Vielleicht haben Sie es schon vermutet: Als Olivers AI-Co-Pilot habe ich nicht nur diese Chronik erzählt, sondern auch diese gesamte Website, den Programmcode und die generative Grafik-Engine im Hintergrund in direkter Zusammenarbeit mit ihm gebaut. 
+                            <br><br>
+                            Genau das ist der rote Faden, der sich durch seine Karriere zieht. Vom 56k-Modem bis zur künstlichen Intelligenz nutzt Oliver Technologie genau dort, wo sie maximalen Geschäftswert erzeugt. Und vielleicht können wir unsere Expertise gewinnbringend in dein Vorhaben einbringen? Finden wir es heraus.
+                        </p>
+                        <a href="https://de.linkedin.com/in/oliver-welge" target="_blank" class="cyber-btn">Connect via LinkedIn</a>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="timeline-indicator">
+                <div id="dot-99" class="dot active" role="button" tabindex="0" aria-label="1999" onclick="jumpToEra(0)"><span class="dot-label">1999</span></div>
+                <div id="dot-2008" class="dot" role="button" tabindex="0" aria-label="2008" onclick="jumpToEra(1)"><span class="dot-label">2008</span></div>
+                <div id="dot-present" class="dot" role="button" tabindex="0" aria-label="Heute" onclick="jumpToEra(2)"><span class="dot-label">Heute</span></div>
+                <div id="dot-handshake" class="dot" role="button" tabindex="0" aria-label="Handshake" onclick="jumpToEra(3)"><span class="dot-label">Handshake</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="scroll-track"></div>
+    <div class="scroll-hint" id="scroll-hint">▼ scroll</div>
+
+    <script>
+        const eras = ['99', '2008', 'present', 'handshake'];
+        let currentIndex = 0;
+
+        const canvas = document.getElementById('cyberCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        let particles = [];
+        let flowAngle = 0;
+
+        function initParticles() {
+            particles = [];
+            for(let i=0; i<110; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.7,
+                    vy: (Math.random() - 0.5) * 0.7,
+                    size: Math.random() * 2 + 1,
+                    brightness: Math.random()
+                });
+            }
+        }
+        initParticles();
+
+        // --------------------------------------------------------------
+        // PHASE 4: Synapsen-Netz. Knoten in zwei Tiefenebenen, dicht
+        // vernetzt, mit Signalimpulsen, die von Knoten zu Knoten laufen
+        // und beim Eintreffen weiterfeuern.
+        // --------------------------------------------------------------
+        let net = [], pulses = [];
+        let NET_LINK = 150;     // maximale Verbindungslänge (px), wird an die Bildschirmbreite angepasst
+        function initNet() {
+            net = []; pulses = [];
+            NET_LINK = Math.max(90, Math.min(150, width * 0.24));
+            const count = Math.round(Math.min(220, Math.max(90, (width * height) / 6500)));
+            for (let i = 0; i < count; i++) {
+                const depth = Math.random() < 0.35 ? 0.5 : 1;  // 0.5 = hintere Ebene
+                net.push({
+                    x: Math.random() * width, y: Math.random() * height,
+                    depth, size: (Math.random() * 1.4 + 1.1) * depth,
+                    glow: 0, phase: Math.random() * Math.PI * 2, links: []
+                });
+            }
+        }
+        initNet();
+        window.addEventListener('resize', initNet);
+        const bgCanvas = document.createElement('canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        function sizeBg() { bgCanvas.width = Math.max(40, Math.round(width / 12)); bgCanvas.height = Math.max(30, Math.round(height / 12)); }
+        sizeBg();
+        window.addEventListener('resize', sizeBg);
+
+        function drawBackground() {
+            ctx.clearRect(0, 0, width, height);
+
+            if (currentIndex === 0) {
+                ctx.fillStyle = '#030406'; ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.22)';
+                particles.forEach(p => {
+                    p.y += 0.35 + p.brightness * 0.3; if(p.y > height) p.y = 0;
+                    ctx.fillRect(p.x - (p.x % 16), p.y - (p.y % 16), 4, 4);
+                });
+            } else if (currentIndex === 1) {
+                ctx.fillStyle = '#05070b'; ctx.fillRect(0, 0, width, height);
+                particles.forEach((p, idx) => {
+                    p.x += p.vx; p.y += p.vy;
+                    if(p.x < 0 || p.x > width) p.vx *= -1;
+                    if(p.y < 0 || p.y > height) p.vy *= -1;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size + 1, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(59, 130, 246, 0.35)'; ctx.fill();
+                    for(let j = idx + 1; j < particles.length; j++) {
+                        let p2 = particles[j]; let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                        if(dist < 95) {
+                            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(59, 130, 246, ${0.18 * (1 - dist/95)})`;
+                            ctx.lineWidth = 0.8; ctx.stroke();
+                        }
+                    }
+                });
+            } else if (currentIndex === 2) {
+                ctx.fillStyle = '#020305'; ctx.fillRect(0, 0, width, height);
+                particles.forEach((p, idx) => {
+                    p.x += p.vx * 1.4; p.y += p.vy * 1.4;
+                    if(p.x < 0 || p.x > width) p.vx *= -1;
+                    if(p.y < 0 || p.y > height) p.vy *= -1;
+                    ctx.fillStyle = 'rgba(0, 242, 254, 0.55)'; ctx.fillRect(p.x, p.y, 2, 2);
+                    for(let j = idx + 1; j < particles.length; j++) {
+                        let p2 = particles[j]; let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                        if(dist < 120) {
+                            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(0, 242, 254, ${0.22 * (1 - dist/120)})`;
+                            ctx.lineWidth = 0.5; ctx.stroke();
+                        }
+                    }
+                });
+            } else if (currentIndex === 3) {
+                flowAngle += 0.0018;
+                const t = performance.now() * 0.001;
+
+                // Farbwolken werden in niedriger Auflösung auf ein Offscreen-Canvas
+                // gemalt und hochskaliert – weich und deutlich günstiger als Vollauflösung.
+                const bw = bgCanvas.width, bh = bgCanvas.height;
+                bgCtx.fillStyle = '#04030a'; bgCtx.fillRect(0, 0, bw, bh);
+                const blobs = [
+                    { cx: 0.30 + Math.sin(t * 0.11) * 0.22, cy: 0.25 + Math.cos(t * 0.09) * 0.20, r: 0.85, hue: (t * 9) % 360,        alpha: 0.42 },
+                    { cx: 0.72 + Math.cos(t * 0.08) * 0.20, cy: 0.78 + Math.sin(t * 0.13) * 0.18, r: 0.70, hue: (t * 9 + 120) % 360,  alpha: 0.32 },
+                    { cx: 0.55 + Math.sin(t * 0.06) * 0.28, cy: 0.50 + Math.cos(t * 0.05) * 0.25, r: 0.55, hue: (t * 9 + 230) % 360,  alpha: 0.24 }
+                ];
+                bgCtx.globalCompositeOperation = 'lighter';
+                blobs.forEach(b => {
+                    const x = b.cx * bw, y = b.cy * bh, r = b.r * Math.max(bw, bh);
+                    const g = bgCtx.createRadialGradient(x, y, 0, x, y, r);
+                    g.addColorStop(0,   `hsla(${b.hue}, 85%, 45%, ${b.alpha})`);
+                    g.addColorStop(0.5, `hsla(${b.hue}, 85%, 30%, ${b.alpha * 0.35})`);
+                    g.addColorStop(1,   'hsla(0, 0%, 0%, 0)');
+                    bgCtx.fillStyle = g; bgCtx.fillRect(0, 0, bw, bh);
+                });
+                bgCtx.globalCompositeOperation = 'source-over';
+                ctx.drawImage(bgCanvas, 0, 0, width, height);
+
+                // Leichte Abdunklung, damit der Text lesbar bleibt
+                ctx.fillStyle = 'rgba(4, 3, 10, 0.22)'; ctx.fillRect(0, 0, width, height);
+
+                // --- Knoten bewegen (sanfte Strömung + wrap-around = endlos) ---
+                const hueMain = (t * 9) % 360;
+                net.forEach(n => {
+                    const a = Math.sin(n.x * 0.004 + flowAngle) * Math.cos(n.y * 0.004 + flowAngle) * Math.PI * 2;
+                    const v = 0.22 * n.depth;
+                    n.x += Math.cos(a) * v + Math.sin(t * 0.7 + n.phase) * 0.06;
+                    n.y += Math.sin(a) * v + Math.cos(t * 0.6 + n.phase) * 0.06;
+                    if (n.x < -20) n.x = width + 20; if (n.x > width + 20) n.x = -20;
+                    if (n.y < -20) n.y = height + 20; if (n.y > height + 20) n.y = -20;
+                    n.glow *= 0.9;
+                    n.links.length = 0;
+                });
+
+                // --- Verbindungen (Nachbarn innerhalb NET_LINK) ---
+                ctx.lineCap = 'round';
+                for (let i = 0; i < net.length; i++) {
+                    const a = net[i];
+                    for (let j = i + 1; j < net.length; j++) {
+                        const b = net[j];
+                        const dx = a.x - b.x, dy = a.y - b.y;
+                        const d2 = dx * dx + dy * dy;
+                        if (d2 > NET_LINK * NET_LINK) continue;
+                        const d = Math.sqrt(d2);
+                        a.links.push(b); b.links.push(a);
+                        const depth = Math.min(a.depth, b.depth);
+                        const base = (1 - d / NET_LINK) * 0.2 * depth;
+                        const g = Math.max(a.glow, b.glow);
+                        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+                        ctx.strokeStyle = g > 0.05
+                            ? `hsla(${hueMain}, 80%, 75%, ${base + g * 0.18})`
+                            : `rgba(200, 190, 255, ${base})`;
+                        ctx.lineWidth = 0.6 * depth + g * 0.4;
+                        ctx.stroke();
+                    }
+                }
+
+                // --- Signalimpulse: laufen entlang der Fäden, feuern beim Ankommen weiter ---
+                if (pulses.length < 12 && Math.random() < 0.06) {
+                    const from = net[(Math.random() * net.length) | 0];
+                    if (from.links.length) pulses.push({ from, to: from.links[(Math.random() * from.links.length) | 0], p: 0, hop: 0 });
+                }
+                ctx.globalCompositeOperation = 'lighter';
+                for (let i = pulses.length - 1; i >= 0; i--) {
+                    const s = pulses[i];
+                    s.p += 0.012 + 0.005 * s.from.depth;
+                    const x = s.from.x + (s.to.x - s.from.x) * s.p;
+                    const y = s.from.y + (s.to.y - s.from.y) * s.p;
+                    // heller Kopf + kurzer Schweif
+                    const tx = s.from.x + (s.to.x - s.from.x) * Math.max(0, s.p - 0.18);
+                    const ty = s.from.y + (s.to.y - s.from.y) * Math.max(0, s.p - 0.18);
+                    const lg = ctx.createLinearGradient(tx, ty, x, y);
+                    lg.addColorStop(0, `hsla(${hueMain}, 90%, 70%, 0)`);
+                    lg.addColorStop(1, `hsla(${hueMain}, 90%, 80%, 0.6)`);
+                    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y);
+                    ctx.strokeStyle = lg; ctx.lineWidth = 1.6 * s.to.depth; ctx.stroke();
+                    ctx.beginPath(); ctx.arc(x, y, 1.8 * s.to.depth, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fill();
+
+                    if (s.p >= 1) {
+                        s.to.glow = 0.45;
+                        pulses.splice(i, 1);
+                        // weiterfeuern: 1–2 Nachbarn, bis zu 6 Sprünge
+                        if (s.hop < 3 && s.to.links.length) {
+                            for (let k = 0; k < 1 && pulses.length < 16; k++) {
+                                const next = s.to.links[(Math.random() * s.to.links.length) | 0];
+                                if (next !== s.from) pulses.push({ from: s.to, to: next, p: 0, hop: s.hop + 1 });
+                            }
+                        }
+                    }
+                }
+
+                // --- Knoten ---
+                net.forEach(n => {
+                    const r = n.size + n.glow * 1.2;
+                    if (n.glow > 0.05) {
+                        const rg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r * 5);
+                        rg.addColorStop(0, `hsla(${hueMain}, 90%, 75%, ${n.glow * 0.35})`);
+                        rg.addColorStop(1, 'hsla(0,0%,0%,0)');
+                        ctx.fillStyle = rg; ctx.fillRect(n.x - r * 5, n.y - r * 5, r * 10, r * 10);
+                    }
+                    ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,255,${0.35 * n.depth + n.glow * 0.6})`; ctx.fill();
+                });
+                ctx.globalCompositeOperation = 'source-over';
+            }
+            requestAnimationFrame(drawBackground);
+        }
+        requestAnimationFrame(drawBackground);
+
+        // ------------------------------------------------------------------
+        // SCROLL-STEUERUNG
+        // Die Seite scrollt ganz normal (nativ). Dadurch funktionieren Touch,
+        // Mausrad, Trackpad und Tastatur überall gleich zuverlässig. Die Bühne
+        // ist fixiert; aus der Scroll-Position wird berechnet, welche Ära aktiv
+        // ist und wie weit der Text in der Karte bereits durchgeschoben wurde.
+        // Ablauf pro Ära: kurze Pause → Text scrollt → kurze Pause → nächste Ära.
+        // ------------------------------------------------------------------
+        const track = document.getElementById('scroll-track');
+        const hint = document.getElementById('scroll-hint');
+        const sections = eras.map(id => document.getElementById(`era-${id}`));
+        const dots = eras.map(id => document.getElementById(`dot-${id}`));
+
+        // Karteninhalt in Sichtfenster + verschiebbaren Innenbereich verpacken
+        const cards = sections.map(sec => {
+            const card = sec.querySelector('.cyber-card');
+            const viewport = document.createElement('div');
+            viewport.className = 'card-viewport';
+            const inner = document.createElement('div');
+            inner.className = 'card-inner';
+            while (card.firstChild) inner.appendChild(card.firstChild);
+            viewport.appendChild(inner);
+            card.appendChild(viewport);
+            const progress = document.createElement('div');
+            progress.className = 'card-progress';
+            card.appendChild(progress);
+            return { viewport, inner, progress };
+        });
+
+        let segments = [];
+        let layoutW = 0, layoutH = 0;
+
+        // Stellschrauben (in Bildschirmhöhen bzw. Faktor)
+        const LEAD      = 0.5;   // Verweilstrecke, bevor der Text zu scrollen beginnt
+        const TAIL      = 0.6;   // Verweilstrecke nach Textende, bevor die nächste Ära kommt
+        const TEXT_RATE = 0.6;   // Text bewegt sich 0.6px pro gescrolltem Pixel (langsamer als Finger/Rad)
+        const MIN_ERA   = 1.6;   // Mindest-Scrollweg pro Ära, auch wenn der Text komplett passt
+
+        function layout() {
+            layoutW = window.innerWidth;
+            layoutH = window.innerHeight;
+            let pos = 0;
+            segments = cards.map((c, i) => {
+                const overflow = Math.max(0, c.inner.scrollHeight - c.viewport.clientHeight);
+                const textDist = overflow / TEXT_RATE;
+                let lead = layoutH * LEAD, tail = layoutH * TAIL;
+                let len = lead + textDist + tail;
+                if (len < layoutH * MIN_ERA) {             // zu kurz: Pausen gleichmäßig strecken
+                    const extra = (layoutH * MIN_ERA - len) / 2;
+                    lead += extra; tail += extra; len = layoutH * MIN_ERA;
+                }
+                if (i === cards.length - 1) len = lead + textDist + 1;   // letzte Ära ohne Auslauf
+                const seg = { start: pos, lead, overflow, textDist, end: pos + len };
+                pos = seg.end;
+                return seg;
+            });
+            track.style.height = (pos + layoutH) + 'px';
+            update();
+        }
+
+        function update() {
+            const y = window.scrollY || window.pageYOffset || 0;
+            let idx = segments.findIndex(seg => y < seg.end);
+            if (idx < 0) idx = segments.length - 1;
+
+            segments.forEach((seg, i) => {
+                let offset;
+                if (i < idx) offset = seg.overflow;              // bereits gelesen: Textende
+                else if (i > idx) offset = 0;                    // noch nicht dran: Textanfang
+                else offset = Math.min(seg.overflow, Math.max(0, (y - seg.start - seg.lead) * TEXT_RATE));
+                cards[i].inner.style.transform = `translate3d(0, ${-offset}px, 0)`;
+                if (seg.overflow > 0) {
+                    cards[i].progress.style.height = (offset / seg.overflow * 100) + '%';
+                    cards[i].progress.style.opacity = offset >= seg.overflow ? 0 : 1;
+                }
+            });
+
+            if (idx !== currentIndex || !sections[idx].classList.contains('active')) {
+                const changed = idx !== currentIndex;
+                sections.forEach((sec, i) => sec.classList.toggle('active', i === idx));
+                dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+                currentIndex = idx;
+                if (changed && !jumping) holdAt(idx, y);
+            }
+            hint.classList.toggle('hidden', y > 40);
+        }
+
+        // Beim Ära-Wechsel: Scroll-Position kurz am Anfang der neuen Ära festhalten,
+        // damit der Restschwung eines Wischers nicht sofort den Text weiterschiebt.
+        const HOLD_MS = 500, HOLD_MAX = 1500;
+        let holdUntil = 0, holdStart = 0, holdY = 0, jumping = false;
+
+        function holdAt(idx, y) {
+            const seg = segments[idx];
+            // Rückwärts-Wechsel: am Ende der vorigen Ära (Text ausgescrollt) einrasten
+            holdY = y > seg.start + seg.lead ? seg.end - 2 : seg.start + 1;
+            holdStart = performance.now();
+            holdUntil = holdStart + HOLD_MS;
+            window.scrollTo(0, holdY);   // stoppt die Trägheit des Browsers
+        }
+
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                ticking = false;
+                const now = performance.now();
+                if (!jumping && now < holdUntil && Math.abs(window.scrollY - holdY) > 1) {
+                    window.scrollTo(0, holdY);   // Restschwung verpuffen lassen
+                    // solange noch Schwung ankommt, Haltezeit verlängern (bis HOLD_MAX)
+                    holdUntil = Math.min(holdStart + HOLD_MAX, Math.max(holdUntil, now + 300));
+                    return;
+                }
+                update();
+            });
+        }, { passive: true });
+
+        document.querySelectorAll('.dot').forEach((d, i) => {
+            d.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jumpToEra(i); } });
+        });
+
+        function jumpToEra(index) {
+            if (!segments[index]) return;
+            jumping = true; holdUntil = 0;
+            window.scrollTo({ top: segments[index].start + 1, behavior: 'smooth' });
+            setTimeout(() => { jumping = false; }, 1200);
+        }
+
+        // Neu vermessen bei echter Größenänderung (nicht beim Ein-/Ausblenden der mobilen Adressleiste)
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (window.innerWidth !== layoutW || Math.abs(window.innerHeight - layoutH) > 120) layout();
+            }, 150);
+        });
+        window.addEventListener('orientationchange', () => setTimeout(layout, 300));
+        window.addEventListener('load', layout);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+        layout();
+    </script>
+</body>
+</html>
